@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Carnicería - Cámara, Mural y Vencimientos</title>
+    
+    <!-- PWA Meta tags for Mobile App Installation -->
+    <meta name="theme-color" content="#991b1b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Carnicería App">
+    
+    <!-- Dynamic Web App Manifest Data-URI -->
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "Stock de Inventario Carnicería",
+        "short_name": "Carnicería",
+        "start_url": "./",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#991b1b",
+        "icons": [
+            {
+                "src": "https://placehold.co/192x192/991b1b/ffffff?text=🥩",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "https://placehold.co/512x512/991b1b/ffffff?text=🥩",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    }'>
+
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400,500,600,700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header con el título solicitado -->
+    <header class="bg-red-900 border-b border-red-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-red-700 p-3 rounded-2xl shadow-inner text-white text-3xl">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Stock de inventario carnicería</h1>
+                    <p class="text-xs sm:text-sm text-red-200 mt-0.5">Control en la Nube (Cámara, Mural y Vencimientos)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Indicador de conexión en la nube -->
+                <div id="cloud-status" class="bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-xl text-xs flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Nube Conectada</span>
+                </div>
+                <!-- Botón flotante para regresar al Menú Principal -->
+                <button id="btn-volver-menu" onclick="switchTab('menu')" class="hidden bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all shadow border border-red-700">
+                    <i class="fa-solid fa-house mr-1.5"></i> Volver al Menú
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- Modales de Notificación personalizados -->
+        <div id="modal-notif" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+                <div id="modal-icon" class="text-4xl text-emerald-400">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 id="modal-title" class="text-lg font-bold text-white">¡Éxito!</h3>
+                <p id="modal-message" class="text-sm text-slate-300">Operación realizada correctamente.</p>
+                <button onclick="closeModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-red-600/30">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 0: MENÚ PRINCIPAL (ESTILO TARJETAS) -->
+        <section id="tab-menu" class="space-y-6 py-4">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-white">Selecciona una opción</h2>
+                <p class="text-xs text-slate-400 mt-1">Sincronizado automáticamente en todos tus dispositivos.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Tarjeta 1: Ver lista de productos -->
+                <button onclick="switchTab('catalogo')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-red-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group">
+                    <div class="bg-red-600/10 text-red-400 p-3.5 rounded-xl w-fit group-hover:bg-red-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Ver lista de productos</h3>
+                        <p class="text-xs text-slate-400 mt-1">Catálogo completo de cortes y estado de stock actual.</p>
+                    </div>
+                </button>
+
+                <!-- Tarjeta 2: Cámara -->
+                <button onclick="switchTab('camara')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-blue-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group">
+                    <div class="bg-blue-600/10 text-blue-400 p-3.5 rounded-xl w-fit group-hover:bg-blue-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-warehouse"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Cámara</h3>
+                        <p class="text-xs text-slate-400 mt-1">Control de almacenamiento en frío y lotes guardados.</p>
+                    </div>
+                </button>
+
+                <!-- Tarjeta 3: Mural -->
+                <button onclick="switchTab('mural')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-emerald-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group">
+                    <div class="bg-emerald-600/10 text-emerald-400 p-3.5 rounded-xl w-fit group-hover:bg-emerald-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Mural</h3>
+                        <p class="text-xs text-slate-400 mt-1">Productos en exhibición y vitrinas listos para venta.</p>
+                    </div>
+                </button>
+
+                <!-- Tarjeta 4: Ingresar (Productos / Lotes / Traspaso) -->
+                <button onclick="switchTab('movimiento')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group">
+                    <div class="bg-amber-600/10 text-amber-400 p-3.5 rounded-xl w-fit group-hover:bg-amber-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-circle-plus"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Ingresar productos</h3>
+                        <p class="text-xs text-slate-400 mt-1">Registrar nuevos lotes, stock por cajas y traspasos a mural.</p>
+                    </div>
+                </button>
+
+                <!-- Tarjeta 5: Alertas -->
+                <button onclick="switchTab('alertas')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-red-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group relative">
+                    <span id="menu-badge-alertas" class="absolute top-4 right-4 bg-amber-500 text-slate-950 text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                    <div class="bg-purple-600/10 text-purple-400 p-3.5 rounded-xl w-fit group-hover:bg-purple-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Alertas</h3>
+                        <p class="text-xs text-slate-400 mt-1">Reporte de vencimientos próximos y días de retiro.</p>
+                    </div>
+                </button>
+
+                <!-- Tarjeta 6: Sincronización / Instalación -->
+                <button onclick="switchTab('respaldo')" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-indigo-500/50 p-6 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 text-left flex flex-col justify-between group">
+                    <div class="bg-indigo-600/10 text-indigo-400 p-3.5 rounded-xl w-fit group-hover:bg-indigo-600 group-hover:text-white transition-all text-2xl mb-4">
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Instalar App / Cloud</h3>
+                        <p class="text-xs text-slate-400 mt-1">Instálala en tu celular como app y accede desde cualquier dispositivo.</p>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 1: ALERTAS DE VENCIMIENTO -->
+        <section id="tab-alertas" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                            <span>Reporte de Vencimientos Próximos y Retiros</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Lotes próximos a vencer o que ya cumplieron sus días de retiro establecidos.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs text-slate-400">Días anticipación alerta:</span>
+                        <select id="filtro-dias-alerta" onchange="renderizarAlertas()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
+                            <option value="2">2 días</option>
+                            <option value="3" selected>3 días</option>
+                            <option value="5">5 días</option>
+                            <option value="7">7 días</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto mt-4">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                                <th class="p-3">Ubicación</th>
+                                <th class="p-3">Corte</th>
+                                <th class="p-3" colspan="4">Detalle de Lotes y Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-alertas-body" class="divide-y divide-slate-700 text-sm">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: CONTROL EN CÁMARA -->
+        <section id="tab-camara" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-warehouse text-blue-400"></i>
+                            <span>Cámara</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Control de almacenamiento en frío.</p>
+                    </div>
+                    <button onclick="abrirModalLote('camara')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Ingresar Lote</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                                <th class="p-3">Corte</th>
+                                <th class="p-3">Stock</th>
+                                <th class="p-3">F. Venca.</th>
+                                <th class="p-3">F. Retiro</th>
+                                <th class="p-3">F. Alerta</th>
+                                <th class="p-3 text-right">Editor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-camara-body" class="divide-y divide-slate-700 text-sm">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: CONTROL EN MURAL -->
+        <section id="tab-mural" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-store text-emerald-400"></i>
+                            <span>Mural</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Productos en exhibición.</p>
+                    </div>
+                    <button onclick="abrirModalLote('mural')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Ingresar Lote</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                                <th class="p-3">Corte</th>
+                                <th class="p-3">Stock</th>
+                                <th class="p-3">F. Vence</th>
+                                <th class="p-3">F. Retiro</th>
+                                <th class="p-3">F. Alerta</th>
+                                <th class="p-3 text-right">Editor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-mural-body" class="divide-y divide-slate-700 text-sm">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: INGRESAR / TRASPASO -->
+        <section id="tab-movimiento" class="hidden space-y-6">
+            <div class="max-w-xl mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
+                <div class="flex border-b border-slate-700 pb-3 gap-4">
+                    <button onclick="switchSubIngreso('nuevo')" id="btn-sub-nuevo" class="font-bold text-sm text-red-400 border-b-2 border-red-500 pb-1">Ingresar Producto</button>
+                    <button onclick="switchSubIngreso('traspaso')" id="btn-sub-traspaso" class="font-medium text-sm text-slate-400 pb-1">Traspaso (Cámara a Mural)</button>
+                </div>
+
+                <!-- Formulario Ingresar Producto -->
+                <div id="sub-ingreso-nuevo">
+                    <div class="mb-4">
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-circle-plus text-red-500"></i>
+                            <span>Ingresar Producto (Formulario)</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Registra nombre, categoría, ubicación, stock y hasta 10 fechas.</p>
+                    </div>
+                    <button onclick="abrirModalLote('camara')" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Abrir Formulario de Ingreso</span>
+                    </button>
+                </div>
+
+                <!-- Formulario Traspaso -->
+                <div id="sub-ingreso-traspaso" class="hidden space-y-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-right-left text-red-500"></i>
+                            <span>Traspaso (Cámara a Mural)</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Selecciona el corte, de dónde a dónde traspasa y la cantidad.</p>
+                    </div>
+
+                    <form onsubmit="ejecutarMovimiento(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Seleccionar Corte</label>
+                            <select id="mov-producto" onchange="cargarLotesOrigenParaMovimiento()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500">
+                                <!-- Inyectado por JS -->
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">De dónde (Origen)</label>
+                                <select id="mov-origen" onchange="cargarLotesOrigenParaMovimiento()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                    <option value="camara">Cámara</option>
+                                    <option value="mural">Mural</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">A dónde (Destino)</label>
+                                <select id="mov-destino" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                    <option value="mural">Mural</option>
+                                    <option value="camara">Cámara</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Lote específico</label>
+                            <select id="mov-lote" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                <option value="">-- Primero elija corte y origen --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Cantidad (Cajas)</label>
+                            <input type="number" min="1" id="mov-cajas" required placeholder="Ej. 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                        </div>
+
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-arrow-right"></i>
+                            <span>Confirmar Traspaso</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: VER LISTA DE PRODUCTOS -->
+        <section id="tab-catalogo" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Lista de Productos por Categoría</h2>
+                        <p class="text-xs text-slate-400">Resumen general separado por marca/categoría con stock y fechas.</p>
+                    </div>
+                    <button onclick="abrirModalCatalogo()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Nueva Categoría</span>
+                    </button>
+                </div>
+                <!-- Contenedor separado por categorías -->
+                <div id="contenedor-categorias-catalogo" class="p-4 space-y-6">
+                    <!-- Inyectado por JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6: INSTALACIÓN / SINCRONIZACIÓN CLOUD -->
+        <section id="tab-respaldo" class="hidden space-y-6">
+            <div class="max-w-xl mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-mobile-screen-button text-indigo-400"></i>
+                        <span>Descargar e Instalar en tu Celular</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Esta aplicación cuenta con soporte PWA completo para instalarse como una app de tienda.</p>
+                </div>
+
+                <div class="bg-indigo-950/40 border border-indigo-500/30 p-4 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-indigo-200"><i class="fa-solid fa-circle-info mr-1"></i> Instrucciones de Instalación:</h3>
+                    <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+                        <li><strong>En Android (Chrome):</strong> Toca los tres puntos arriba a la derecha y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.</li>
+                        <li><strong>En iPhone (Safari):</strong> Toca el botón <strong>Compartir</strong> y luego selecciona <strong>"Agregar a inicio"</strong>.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-2">
+                    <h3 class="text-sm font-bold text-white">Sincronización Multi-dispositivo</h3>
+                    <p class="text-xs text-slate-400">Tus datos están seguros en la nube. Abre este mismo enlace en cualquier otro teléfono y verás el inventario actualizado al segundo.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal para Ingresar Lote / Producto -->
+    <div id="modal-lote" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 my-8">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 id="modal-lote-titulo" class="text-lg font-bold text-white">Ingresar Producto / Formulario</h3>
+                <button onclick="cerrarModalLote()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="guardarLote(event)" class="space-y-4">
+                <input type="hidden" id="lote-id-edicion">
+                
+                <!-- Selector de Categoría / Marca -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Categoría / Marca</label>
+                    <select id="lote-categoria" onchange="verificarOpcionOtraCategoria()" required class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none mb-2">
+                        <option value="Farmer">Farmer</option>
+                        <option value="Pampa Verde">Pampa Verde</option>
+                        <option value="El Origen">El Origen</option>
+                        <option value="Campo Osorno">Campo Osorno</option>
+                        <option value="otro">-- Otro (Escribir nueva categoría) --</option>
+                    </select>
+                    <div id="contenedor-otra-categoria" class="hidden">
+                        <input type="text" id="lote-otra-cat-nombre" placeholder="Escribe el nombre de la nueva categoría..." class="w-full bg-slate-950 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500">
+                    </div>
+                </div>
+
+                <!-- Nombre del Producto / Corte con opción de "Otro" -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Nombre Producto (Corte)</label>
+                    <select id="lote-producto" onchange="verificarOpcionOtroCorte()" required class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none mb-2">
+                        <!-- Inyectado por JS -->
+                    </select>
+                    <div id="contenedor-otro-corte" class="hidden">
+                        <input type="text" id="lote-otro-nombre" placeholder="Escribe el nombre del nuevo corte..." class="w-full bg-slate-950 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500">
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Ubicación (¿Dónde está ese stock?)</label>
+                    <select id="lote-ubicacion-sel" onchange="toggleCamposStockDoble()" required class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                        <option value="camara">Cámara</option>
+                        <option value="mural">Mural</option>
+                        <option value="ambos">Ambos (Se abren 2 opciones de stock)</option>
+                    </select>
+                </div>
+
+                <!-- Opciones de Stock -->
+                <div id="seccion-stock-simple">
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Stock (por cajas)</label>
+                    <input type="number" min="1" id="lote-cajas" value="1" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none" placeholder="Cantidad en cajas">
+                </div>
+
+                <div id="seccion-stock-doble" class="hidden grid grid-cols-2 gap-4 bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+                    <div>
+                        <label class="block text-xs font-medium text-blue-400 mb-1">Stock Cámara (por cajas)</label>
+                        <input type="number" min="0" id="lote-stock-camara" value="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-emerald-400 mb-1">Stock Mural (por cajas)</label>
+                        <input type="number" min="0" id="lote-stock-mural" value="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+
+                <!-- Fechas (Hasta 10 fechas) -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-medium text-slate-300">Fechas y Parámetros (Hasta 10 fechas)</label>
+                        <button type="button" onclick="agregarFilaFecha()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg shadow">
+                            <i class="fa-solid fa-plus mr-1"></i> Añadir Fecha
+                        </button>
+                    </div>
+                    <div id="contenedor-fechas" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <!-- Filas de fechas inyectadas por JS -->
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="cerrarModalLote()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl text-sm">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-xl text-sm shadow-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Nueva Categoría -->
+    <div id="modal-catalogo" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 id="modal-catalogo-titulo" class="text-lg font-bold text-white">Nueva Categoría</h3>
+                <button onclick="cerrarModalCatalogo()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="guardarCatalogo(event)" class="space-y-3">
+                <input type="hidden" id="cat-id-edicion">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Nombre de la Categoría</label>
+                    <input type="text" id="cat-nombre" required placeholder="Ej. Farmer, Pampa Verde..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="cerrarModalCatalogo()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl text-sm">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 rounded-xl text-sm shadow-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'carniceria-stock-app';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        let app, db, auth;
+        let isCloudConnected = false;
+
+        // Estado global de la app
+        window.catalogo = [
+            { id: 1, nombre: 'Lomo Vetado', categoria: 'Farmer' },
+            { id: 2, nombre: 'Lomo Lisas', categoria: 'Pampa Verde' },
+            { id: 3, nombre: 'Asado Carnicero', categoria: 'El Origen' },
+            { id: 4, nombre: 'Abastero', categoria: 'Campo Osorno' },
+            { id: 5, nombre: 'Sobrecostilla', categoria: 'Farmer' },
+            { id: 6, nombre: 'Asado de Tira', categoria: 'Pampa Verde' }
+        ];
+
+        window.camaraLotes = [
+            { id: 101, productoId: 1, cajas: 3, vencimiento: '2026-06-15', diasRetiroAnt: 2, diasAlertaAnt: 1, retiro: '2026-06-13', alertaFecha: '2026-06-12' }
+        ];
+
+        window.muralLotes = [
+            { id: 201, productoId: 2, cajas: 2, vencimiento: '2026-06-09', diasRetiroAnt: 2, diasAlertaAnt: 1, retiro: '2026-06-07', alertaFecha: '2026-06-06' }
+        ];
+
+        async function initFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Corregido a 4 segmentos (collection/document/collection/document) para cumplir con Firestore
+                    const docRef = doc(db, 'artifacts', appId, 'data', 'inventario_carniceria');
+                    onSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data.catalogo) window.catalogo = data.catalogo;
+                            if (data.camaraLotes) window.camaraLotes = data.camaraLotes;
+                            if (data.muralLotes) window.muralLotes = data.muralLotes;
+                            
+                            isCloudConnected = true;
+                            actualizarUIActual();
+                        } else {
+                            persistirCloud();
+                        }
+                    }, (error) => {
+                        console.error("Error en sincronización en vivo:", error);
+                    });
+                }
+            } catch (e) {
+                console.error("Error inicializando Firebase:", e);
+            }
+        }
+
+        window.persistirCloud = async function() {
+            actualizarContadorAlertasMenu();
+            actualizarUIActual();
+
+            if (db) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'data', 'inventario_carniceria');
+                    await setDoc(docRef, {
+                        catalogo: window.catalogo,
+                        camaraLotes: window.camaraLotes,
+                        muralLotes: window.muralLotes,
+                        actualizado: new Date().toISOString()
+                    });
+                } catch (e) {
+                    console.error("Error al guardar en la nube:", e);
+                }
+            }
+        }
+
+        function actualizarUIActual() {
+            const activeTab = document.querySelector('main > section:not(.hidden)');
+            if (activeTab) {
+                const id = activeTab.id.replace('tab-', '');
+                if (id === 'alertas') renderizarAlertas();
+                if (id === 'camara') renderizarCamara();
+                if (id === 'mural') renderizarMural();
+                if (id === 'catalogo') renderizarCatalogo();
+                if (id === 'movimiento') prepararMovimiento();
+            }
+            actualizarContadorAlertasMenu();
+        }
+
+        // Navegación principal de pestañas
+        window.switchTab = function(tab) {
+            ['menu', 'alertas', 'camara', 'mural', 'movimiento', 'catalogo', 'respaldo'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(el) el.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(`tab-${tab}`);
+            if(target) target.classList.remove('hidden');
+
+            const btnVolver = document.getElementById('btn-volver-menu');
+            if(tab === 'menu') {
+                if(btnVolver) btnVolver.classList.add('hidden');
+            } else {
+                if(btnVolver) btnVolver.classList.remove('hidden');
+            }
+
+            if(tab === 'alertas') renderizarAlertas();
+            if(tab === 'camara') renderizarCamara();
+            if(tab === 'mural') renderizarMural();
+            if(tab === 'movimiento') prepararMovimiento();
+            if(tab === 'catalogo') renderizarCatalogo();
+            
+            actualizarContadorAlertasMenu();
+        }
+
+        window.switchSubIngreso = function(sub) {
+            if(sub === 'nuevo') {
+                document.getElementById('sub-ingreso-nuevo').classList.remove('hidden');
+                document.getElementById('sub-ingreso-traspaso').classList.add('hidden');
+                document.getElementById('btn-sub-nuevo').className = "font-bold text-sm text-red-400 border-b-2 border-red-500 pb-1";
+                document.getElementById('btn-sub-traspaso').className = "font-medium text-sm text-slate-400 pb-1";
+            } else {
+                document.getElementById('sub-ingreso-nuevo').classList.add('hidden');
+                document.getElementById('sub-ingreso-traspaso').classList.remove('hidden');
+                document.getElementById('btn-sub-traspaso').className = "font-bold text-sm text-red-400 border-b-2 border-red-500 pb-1";
+                document.getElementById('btn-sub-nuevo').className = "font-medium text-sm text-slate-400 pb-1";
+                prepararMovimiento();
+            }
+        }
+
+        window.actualizarContadorAlertasMenu = function() {
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+            let count = 0;
+            const todosLotes = [
+                ...window.camaraLotes.map(l => ({ ...l, ubicacion: 'Cámara' })),
+                ...window.muralLotes.map(l => ({ ...l, ubicacion: 'Mural' }))
+            ];
+            todosLotes.forEach(lote => {
+                const fechaAlertaObj = new Date(lote.alertaFecha + 'T00:00:00');
+                if ((fechaAlertaObj - hoy) <= 0) count++;
+            });
+
+            const badge = document.getElementById('menu-badge-alertas');
+            if(badge) {
+                if(count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        // Renderizar Alertas
+        window.renderizarAlertas = function() {
+            const tbody = document.getElementById('tabla-alertas-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            let agrupadoAlertas = {};
+            const todosLotes = [
+                ...window.camaraLotes.map(l => ({ ...l, ubicacion: 'Cámara' })),
+                ...window.muralLotes.map(l => ({ ...l, ubicacion: 'Mural' }))
+            ];
+
+            todosLotes.forEach(lote => {
+                const prod = window.catalogo.find(p => p.id == lote.productoId);
+                if (!prod) return;
+
+                const fechaAlertaObj = new Date(lote.alertaFecha + 'T00:00:00');
+                const diffDaysAlerta = Math.ceil((fechaAlertaObj - hoy) / (1000 * 60 * 60 * 24));
+                const fechaRetiroObj = new Date(lote.retiro + 'T00:00:00');
+                const diffRetiro = Math.ceil((fechaRetiroObj - hoy) / (1000 * 60 * 60 * 24));
+
+                if (diffDaysAlerta <= 0) {
+                    if (!agrupadoAlertas[lote.productoId]) {
+                        agrupadoAlertas[lote.productoId] = { nombre: prod.nombre, lotes: [] };
+                    }
+                    agrupadoAlertas[lote.productoId].lotes.push({ ...lote, diffRetiro });
+                }
+            });
+
+            const prodIds = Object.keys(agrupadoAlertas);
+            if (prodIds.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400">No hay alertas de retiro o vencimiento próximas. ¡Todo en orden!</td></tr>`;
+            } else {
+                prodIds.forEach(pId => {
+                    const info = agrupadoAlertas[pId];
+                    let detalleHtml = '<div class="space-y-1.5 py-1">';
+                    info.lotes.forEach(l => {
+                        let estadoClase = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                        let estadoTexto = `Retirar el ${l.retiro}`;
+                        if (l.diffRetiro < 0) {
+                            estadoClase = 'bg-red-500/10 text-red-400 border-red-500/20';
+                            estadoTexto = `¡Retiro Vencido (${Math.abs(l.diffRetiro)} días)!`;
+                        } else if (l.diffRetiro === 0) {
+                            estadoClase = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                            estadoTexto = '¡Retirar Hoy!';
+                        }
+                        const badgeUbi = l.ubicacion === 'Cámara' 
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+
+                        detalleHtml += `
+                            <div class="flex flex-wrap items-center justify-between bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700/60 text-xs gap-2">
+                                <div class="space-x-2">
+                                    <span class="border px-2 py-0.5 rounded-full font-medium ${badgeUbi}">${l.ubicacion}</span>
+                                    <strong class="text-white">${l.cajas} cajas</strong>
+                                    <span class="text-slate-300">Vence: ${l.vencimiento}</span>
+                                </div>
+                                <div>
+                                    <span class="border px-2 py-0.5 rounded-full font-medium ${estadoClase}">${estadoTexto}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    detalleHtml += '</div>';
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-700/40 transition-colors border-b border-slate-700/50 align-top";
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-white text-base">${info.nombre}</td>
+                        <td class="p-3" colspan="2">${detalleHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // Renderizar Cámara y Mural
+        window.renderizarCamara = function() { renderizarSeccionUbicacion(window.camaraLotes, 'tabla-camara-body', 'camara'); }
+        window.renderizarMural = function() { renderizarSeccionUbicacion(window.muralLotes, 'tabla-mural-body', 'mural'); }
+
+        function renderizarSeccionUbicacion(lotesArray, tbodyId, ubicacionNombre) {
+            const tbody = document.getElementById(tbodyId);
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if (lotesArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay productos registrados en esta sección.</td></tr>`;
+                return;
+            }
+
+            lotesArray.forEach(lote => {
+                const prod = window.catalogo.find(p => p.id == lote.productoId);
+                if(!prod) return;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/40 transition-colors border-b border-slate-700/50";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-white">${prod.nombre}</td>
+                    <td class="p-3 font-bold text-emerald-400">${lote.cajas}</td>
+                    <td class="p-3 text-slate-300">${lote.vencimiento}</td>
+                    <td class="p-3 text-slate-300">${lote.retiro}</td>
+                    <td class="p-3 text-slate-300">${lote.alertaFecha}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editarLote('${ubicacionNombre}', ${lote.id})" class="text-blue-400 hover:text-blue-300 p-1.5 rounded" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="eliminarLote('${ubicacionNombre}', ${lote.id})" class="text-red-400 hover:text-red-300 p-1.5 rounded" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Modal Lote / Producto
+        window.abrirModalLote = function(ubicacionInicial = 'camara', loteEditar = null) {
+            document.getElementById('lote-id-edicion').value = loteEditar ? loteEditar.id : '';
+            document.getElementById('modal-lote-titulo').innerText = loteEditar ? 'Editar Lote' : 'Ingresar Producto';
+            
+            const selCat = document.getElementById('lote-categoria');
+            selCat.value = 'Farmer';
+            document.getElementById('contenedor-otra-categoria').classList.add('hidden');
+            document.getElementById('lote-otra-cat-nombre').value = '';
+
+            const sel = document.getElementById('lote-producto');
+            sel.innerHTML = '';
+            window.catalogo.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre} (${p.categoria || 'Farmer'})</option>`; });
+            sel.innerHTML += `<option value="otro">-- Otro (Escribir nuevo corte) --</option>`;
+
+            document.getElementById('lote-ubicacion-sel').value = ubicacionInicial;
+            toggleCamposStockDoble();
+            
+            document.getElementById('contenedor-otro-corte').classList.add('hidden');
+            document.getElementById('lote-otro-nombre').value = '';
+
+            if(loteEditar) {
+                const prodFound = window.catalogo.find(p => p.id == loteEditar.productoId);
+                if(prodFound) {
+                    sel.value = prodFound.id;
+                    selCat.value = prodFound.categoria || 'Farmer';
+                }
+                document.getElementById('lote-cajas').value = loteEditar.cajas;
+            } else {
+                document.getElementById('lote-cajas').value = '1';
+                document.getElementById('lote-stock-camara').value = '1';
+                document.getElementById('lote-stock-mural').value = '1';
+            }
+
+            document.getElementById('contenedor-fechas').innerHTML = '';
+            if(loteEditar) {
+                agregarFilaFecha(loteEditar.vencimiento, loteEditar.diasRetiroAnt, loteEditar.diasAlertaAnt);
+            } else {
+                agregarFilaFecha();
+            }
+
+            document.getElementById('modal-lote').classList.remove('hidden');
+            document.getElementById('modal-lote').classList.add('flex');
+        }
+
+        window.verificarOpcionOtraCategoria = function() {
+            const selCat = document.getElementById('lote-categoria');
+            const contOtraCat = document.getElementById('contenedor-otra-categoria');
+            const inputOtraCat = document.getElementById('lote-otra-cat-nombre');
+            if(selCat.value === 'otro') {
+                contOtraCat.classList.remove('hidden');
+                inputOtraCat.required = true;
+            } else {
+                contOtraCat.classList.add('hidden');
+                inputOtraCat.required = false;
+                inputOtraCat.value = '';
+            }
+        }
+
+        window.verificarOpcionOtroCorte = function() {
+            const sel = document.getElementById('lote-producto');
+            const contenedorOtro = document.getElementById('contenedor-otro-corte');
+            const inputOtro = document.getElementById('lote-otro-nombre');
+            if (sel.value === 'otro') {
+                contenedorOtro.classList.remove('hidden');
+                inputOtro.required = true;
+            } else {
+                contenedorOtro.classList.add('hidden');
+                inputOtro.required = false;
+                inputOtro.value = '';
+            }
+        }
+
+        window.toggleCamposStockDoble = function() {
+            const ubi = document.getElementById('lote-ubicacion-sel').value;
+            const simple = document.getElementById('seccion-stock-simple');
+            const doble = document.getElementById('seccion-stock-doble');
+            if(ubi === 'ambos') {
+                simple.classList.add('hidden');
+                doble.classList.remove('hidden');
+            } else {
+                simple.classList.remove('hidden');
+                doble.classList.add('hidden');
+            }
+        }
+
+        window.cerrarModalLote = function() {
+            document.getElementById('modal-lote').classList.remove('flex');
+            document.getElementById('modal-lote').classList.add('hidden');
+        }
+
+        window.agregarFilaFecha = function(venc = '', diasRet = 2, diasAle = 1) {
+            const container = document.getElementById('contenedor-fechas');
+            if (container.children.length >= 10) {
+                mostrarNotificacion("Límite alcanzado", "Solo se permiten ingresar hasta 10 fechas por producto.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+            const hoyStr = new Date().toISOString().split('T')[0];
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-1 sm:grid-cols-4 gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 items-center";
+            div.innerHTML = `
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">¿Cuándo Vence?</label>
+                    <input type="date" value="${venc || hoyStr}" class="fecha-venc w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">¿Días antes retiro?</label>
+                    <input type="number" min="0" value="${diasRet}" class="dias-retiro w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white text-center" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">¿Días alerta antes?</label>
+                    <input type="number" min="0" value="${diasAle}" class="dias-alerta w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white text-center" required>
+                </div>
+                <div class="flex justify-end pt-3 sm:pt-0">
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 p-1 rounded" title="Eliminar fila"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        window.guardarLote = function(event) {
+            event.preventDefault();
+            const idEdicion = document.getElementById('lote-id-edicion').value;
+            const ubicacionSelec = document.getElementById('lote-ubicacion-sel').value;
+            
+            let categoriaFinal = document.getElementById('lote-categoria').value;
+            if (categoriaFinal === 'otro') {
+                categoriaFinal = document.getElementById('lote-otra-cat-nombre').value.trim();
+                if (!categoriaFinal) {
+                    mostrarNotificacion("Atención", "Por favor ingresa el nombre de la nueva categoría.", "fa-triangle-exclamation", "text-amber-400");
+                    return;
+                }
+            }
+
+            let productoId;
+            const selectProdVal = document.getElementById('lote-producto').value;
+            
+            if (selectProdVal === 'otro') {
+                const nombreNuevo = document.getElementById('lote-otro-nombre').value.trim();
+                if (!nombreNuevo) {
+                    mostrarNotificacion("Atención", "Por favor ingresa el nombre del nuevo corte.", "fa-triangle-exclamation", "text-amber-400");
+                    return;
+                }
+                const nuevoId = window.catalogo.length > 0 ? Math.max(...window.catalogo.map(c => c.id)) + 1 : 1;
+                window.catalogo.push({ id: nuevoId, nombre: nombreNuevo, categoria: categoriaFinal });
+                productoId = nuevoId;
+            } else {
+                productoId = parseInt(selectProdVal);
+                const prodObj = window.catalogo.find(p => p.id == productoId);
+                if(prodObj) prodObj.categoria = categoriaFinal;
+            }
+
+            const filas = document.querySelectorAll('#contenedor-fechas > div');
+            if (filas.length === 0) {
+                mostrarNotificacion("Atención", "Debe ingresar al menos una fecha de vencimiento.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+
+            if(idEdicion) {
+                window.camaraLotes = window.camaraLotes.filter(l => l.id != idEdicion);
+                window.muralLotes = window.muralLotes.filter(l => l.id != idEdicion);
+            }
+
+            filas.forEach(fila => {
+                const vencimiento = fila.querySelector('.fecha-venc').value;
+                const diasRetiroAnt = parseInt(fila.querySelector('.dias-retiro').value) || 0;
+                const diasAlertaAnt = parseInt(fila.querySelector('.dias-alerta').value) || 0;
+
+                const fechaVencObj = new Date(vencimiento + 'T00:00:00');
+                fechaVencObj.setDate(fechaVencObj.getDate() - diasRetiroAnt);
+                const retiroStr = fechaVencObj.toISOString().split('T')[0];
+
+                const fechaRetiroObj = new Date(retiroStr + 'T00:00:00');
+                fechaRetiroObj.setDate(fechaRetiroObj.getDate() - diasAlertaAnt);
+                const alertaStr = fechaRetiroObj.toISOString().split('T')[0];
+
+                if(ubicacionSelec === 'ambos') {
+                    const stockCam = parseInt(document.getElementById('lote-stock-camara').value) || 0;
+                    const stockMur = parseInt(document.getElementById('lote-stock-mural').value) || 0;
+
+                    if(stockCam > 0) {
+                        window.camaraLotes.push({
+                            id: Date.now() + Math.floor(Math.random() * 10000),
+                            productoId, cajas: stockCam, vencimiento, diasRetiroAnt, diasAlertaAnt, retiro: retiroStr, alertaFecha: alertaStr
+                        });
+                    }
+                    if(stockMur > 0) {
+                        window.muralLotes.push({
+                            id: Date.now() + Math.floor(Math.random() * 10000) + 1,
+                            productoId, cajas: stockMur, vencimiento, diasRetiroAnt, diasAlertaAnt, retiro: retiroStr, alertaFecha: alertaStr
+                        });
+                    }
+                } else {
+                    const cajas = parseInt(document.getElementById('lote-cajas').value) || 1;
+                    const nuevoLote = {
+                        id: idEdicion ? parseInt(idEdicion) : (Date.now() + Math.floor(Math.random() * 10000)),
+                        productoId, cajas, vencimiento, diasRetiroAnt, diasAlertaAnt, retiro: retiroStr, alertaFecha: alertaStr
+                    };
+                    if(ubicacionSelec === 'camara') window.camaraLotes.push(nuevoLote);
+                    if(ubicacionSelec === 'mural') window.muralLotes.push(nuevoLote);
+                }
+            });
+
+            persistirCloud();
+            cerrarModalLote();
+            mostrarNotificacion("¡Éxito!", "Guardado en la nube correctamente.");
+            switchTab('menu');
+        }
+
+        window.editarLote = function(ubicacion, id) {
+            const lote = (ubicacion === 'camara' ? window.camaraLotes : window.muralLotes).find(l => l.id == id);
+            if(lote) abrirModalLote(ubicacion, lote);
+        }
+
+        window.eliminarLote = function(ubicacion, id) {
+            if(ubicacion === 'camara') window.camaraLotes = window.camaraLotes.filter(l => l.id != id);
+            else window.muralLotes = window.muralLotes.filter(l => l.id != id);
+            persistirCloud();
+            if(ubicacion === 'camara') renderizarCamara(); else renderizarMural();
+            mostrarNotificacion("Eliminado", "Removido correctamente.");
+        }
+
+        // Traspaso
+        window.prepararMovimiento = function() {
+            const selProd = document.getElementById('mov-producto');
+            if(!selProd) return;
+            selProd.innerHTML = '<option value="">-- Seleccione un corte --</option>';
+            window.catalogo.forEach(prod => {
+                selProd.innerHTML += `<option value="${prod.id}">${prod.nombre}</option>`;
+            });
+            cargarLotesOrigenParaMovimiento();
+        }
+
+        window.cargarLotesOrigenParaMovimiento = function() {
+            const pId = document.getElementById('mov-producto').value;
+            const origen = document.getElementById('mov-origen').value;
+            const selLote = document.getElementById('mov-lote');
+            if(!selLote) return;
+            selLote.innerHTML = '';
+            if(!pId) return;
+
+            const fuente = origen === 'camara' ? window.camaraLotes : window.muralLotes;
+            fuente.filter(l => l.productoId == pId).forEach(l => {
+                selLote.innerHTML += `<option value="${l.id}">Vence: ${l.vencimiento} (Stock: ${l.cajas} cajas)</option>`;
+            });
+        }
+
+        window.ejecutarMovimiento = function(event) {
+            event.preventDefault();
+            const pId = document.getElementById('mov-producto').value;
+            const origen = document.getElementById('mov-origen').value;
+            const destino = document.getElementById('mov-destino').value;
+            const loteId = document.getElementById('mov-lote').value;
+            const cajasAMover = parseInt(document.getElementById('mov-cajas').value) || 0;
+
+            if(!loteId || cajasAMover <= 0) {
+                mostrarNotificacion("Atención", "Seleccione un lote válido y cantidad de cajas.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+
+            const fuenteLotes = origen === 'camara' ? window.camaraLotes : window.muralLotes;
+            const index = fuenteLotes.findIndex(l => l.id == loteId);
+            if(index === -1) return;
+
+            const loteActual = fuenteLotes[index];
+            if(cajasAMover > loteActual.cajas) {
+                mostrarNotificacion("Stock insuficiente", "No puedes mover más cajas de las que hay en este lote.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+
+            loteActual.cajas -= cajasAMover;
+            if(loteActual.cajas === 0) {
+                fuenteLotes.splice(index, 1);
+            }
+
+            const destinoLotes = destino === 'camara' ? window.camaraLotes : window.muralLotes;
+            const loteExistenteDestino = destinoLotes.find(l => l.productoId == pId && l.vencimiento === loteActual.vencimiento);
+            if(loteExistenteDestino) {
+                loteExistenteDestino.cajas += cajasAMover;
+            } else {
+                destinoLotes.push({
+                    id: Date.now() + Math.floor(Math.random() * 10000),
+                    productoId: parseInt(pId),
+                    cajas: cajasAMover,
+                    vencimiento: loteActual.vencimiento,
+                    diasRetiroAnt: loteActual.diasRetiroAnt,
+                    diasAlertaAnt: loteActual.diasAlertaAnt,
+                    retiro: loteActual.retiro,
+                    alertaFecha: loteActual.alertaFecha
+                });
+            }
+
+            persistirCloud();
+            mostrarNotificacion("¡Traspaso Exitoso!", `Se movieron ${cajasAMover} cajas de ${origen} a ${destino}.`);
+            switchTab('menu');
+        }
+
+        // Catálogo / Lista de Productos
+        window.renderizarCatalogo = function() {
+            const contenedorCat = document.getElementById('contenedor-categorias-catalogo');
+            if(!contenedorCat) return;
+            contenedorCat.innerHTML = '';
+
+            let grupos = {};
+            window.catalogo.forEach(item => {
+                const cat = item.categoria || 'Sin Categoría';
+                if(!grupos[cat]) grupos[cat] = [];
+                grupos[cat].push(item);
+            });
+
+            const categoriasNombres = Object.keys(grupos);
+            if (categoriasNombres.length === 0) {
+                contenedorCat.innerHTML = `<div class="p-6 text-center text-slate-400">No hay productos registrados en el catálogo.</div>`;
+                return;
+            }
+
+            categoriasNombres.forEach(catNombre => {
+                const divGrupo = document.createElement('div');
+                divGrupo.className = "bg-slate-900/50 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow";
+                
+                let filasHtml = '';
+                grupos[catNombre].forEach(item => {
+                    const lotesCam = window.camaraLotes.filter(l => l.productoId == item.id);
+                    const lotesMur = window.muralLotes.filter(l => l.productoId == item.id);
+
+                    const totalCam = lotesCam.reduce((acc, l) => acc + l.cajas, 0);
+                    const totalMur = lotesMur.reduce((acc, l) => acc + l.cajas, 0);
+
+                    const todasFechas = [...lotesCam, ...lotesMur];
+                    let vencStr = todasFechas.length > 0 ? todasFechas.map(l => l.vencimiento).join(', ') : 'Sin registro';
+                    let retiroStr = todasFechas.length > 0 ? todasFechas.map(l => l.retiro).join(', ') : '-';
+                    let alertaStr = todasFechas.length > 0 ? todasFechas.map(l => l.alertaFecha).join(', ') : '-';
+
+                    filasHtml += `
+                        <tr class="hover:bg-slate-700/40 transition-colors border-b border-slate-700/50 align-top">
+                            <td class="p-3 font-bold text-white">${item.nombre}</td>
+                            <td class="p-3 text-blue-400 font-medium">${totalCam} cajas</td>
+                            <td class="p-3 text-emerald-400 font-medium">${totalMur} cajas</td>
+                            <td class="p-3 text-slate-300 text-xs">${vencStr}</td>
+                            <td class="p-3 text-slate-300 text-xs">${retiroStr}</td>
+                            <td class="p-3 text-slate-300 text-xs">${alertaStr}</td>
+                            <td class="p-3 text-right space-x-1">
+                                <button onclick="editarCatalogo(${item.id})" class="text-blue-400 hover:text-blue-300 p-1.5 rounded" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="eliminarCatalogo(${item.id})" class="text-red-400 hover:text-red-300 p-1.5 rounded" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                divGrupo.innerHTML = `
+                    <div class="bg-red-900/40 px-4 py-2.5 border-b border-slate-700 flex justify-between items-center">
+                        <h3 class="font-bold text-white text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-tag text-red-400"></i>
+                            <span>${catNombre}</span>
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                                    <th class="p-3">Nombre Producto</th>
+                                    <th class="p-3">Stock Cámara</th>
+                                    <th class="p-3">Stock Mural</th>
+                                    <th class="p-3">F. Vencimiento</th>
+                                    <th class="p-3">F. Retiro</th>
+                                    <th class="p-3">Fecha Alerta</th>
+                                    <th class="p-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700 text-sm">
+                                ${filasHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                contenedorCat.appendChild(divGrupo);
+            });
+        }
+
+        window.abrirModalCatalogo = function(corteEditar = null) {
+            document.getElementById('cat-id-edicion').value = corteEditar ? corteEditar.id : '';
+            document.getElementById('modal-catalogo-titulo').innerText = corteEditar ? 'Editar Categoría' : 'Nueva Categoría';
+            document.getElementById('cat-nombre').value = corteEditar ? corteEditar.categoria : '';
+            document.getElementById('modal-catalogo').classList.remove('hidden');
+            document.getElementById('modal-catalogo').classList.add('flex');
+        }
+
+        window.editarCatalogo = function(id) { const c = window.catalogo.find(x => x.id == id); if(c) abrirModalCatalogo(c); }
+        window.cerrarModalCatalogo = function() { document.getElementById('modal-catalogo').classList.remove('flex'); document.getElementById('modal-catalogo').classList.add('hidden'); }
+
+        window.guardarCatalogo = function(event) {
+            event.preventDefault();
+            const idEdicion = document.getElementById('cat-id-edicion').value;
+            const nombre = document.getElementById('cat-nombre').value;
+            if(idEdicion) {
+                const c = window.catalogo.find(x => x.id == idEdicion);
+                if(c) c.categoria = nombre;
+            } else {
+                const nuevoId = window.catalogo.length > 0 ? Math.max(...window.catalogo.map(c => c.id)) + 1 : 1;
+                window.catalogo.push({ id: nuevoId, nombre: 'Nuevo Corte', categoria: nombre });
+            }
+            persistirCloud();
+            renderizarCatalogo();
+            cerrarModalCatalogo();
+            mostrarNotificacion("Guardado", "Categoría actualizada.");
+        }
+
+        window.eliminarCatalogo = function(id) {
+            window.catalogo = window.catalogo.filter(c => c.id != id);
+            persistirCloud();
+            renderizarCatalogo();
+            mostrarNotificacion("Eliminado", "Eliminado correctamente.");
+        }
+
+        window.mostrarNotificacion = function(titulo, mensaje, icono = "fa-circle-check", colorIcono = "text-emerald-400") {
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-message').innerText = mensaje;
+            const iconDiv = document.getElementById('modal-icon');
+            if(iconDiv) {
+                iconDiv.className = `text-4xl ${colorIcono}`;
+                iconDiv.innerHTML = `<i class="fa-solid ${icono}"></i>`;
+            }
+            document.getElementById('modal-notif').classList.remove('hidden');
+            document.getElementById('modal-notif').classList.add('flex');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('modal-notif').classList.remove('flex');
+            document.getElementById('modal-notif').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            switchTab('menu');
+            initFirebase();
+            
+            // Registrar service worker virtual si es compatible
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch",function(e){});').catch(() => {});
+            }
+        };
+    </script>
+</body>
+</html>
